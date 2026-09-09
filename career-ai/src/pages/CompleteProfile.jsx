@@ -20,11 +20,15 @@ const CompleteProfile = () => {
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.name) {
+    if (user.name || user.email) {
       setFormData(prev => ({
         ...prev,
-        name: user.name,
-        email: user.email
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        phone: user.phone || prev.phone,
+        domain: user.domain || prev.domain,
+        skills: Array.isArray(user.skills) ? user.skills.join(', ') : (user.skills || prev.skills),
+        goal: user.goal || prev.goal
       }));
     } else {
       // If no user in local storage, redirect to login
@@ -42,7 +46,7 @@ const CompleteProfile = () => {
     setError('');
 
     try {
-      const response = await apiFetch("http://localhost:5000/api/user/profile", {
+      const response = await apiFetch("/user/profile", {
         method: "POST",
         body: JSON.stringify({
           phone: formData.phone,

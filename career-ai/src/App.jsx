@@ -36,7 +36,7 @@ function App() {
       const token = localStorage.getItem("token");
       if (token) {
         try {
-          const res = await apiFetch("http://localhost:5000/api/user/profile");
+          const res = await apiFetch("/user/profile");
           if (res && res.ok) {
             const data = await res.json();
             localStorage.setItem("user", JSON.stringify(data));

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { apiFetch } from '../utils/api';
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -22,9 +23,8 @@ const Signup = () => {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
+      const response = await apiFetch("/auth/signup", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password })
       });
       const data = await response.json();
@@ -43,9 +43,8 @@ const Signup = () => {
     setIsLoading(true);
     setError('');
     try {
-      const res = await fetch("http://localhost:5000/api/auth/google", {
+      const res = await apiFetch("/auth/google", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential })
       });
       const data = await res.json();

@@ -8,10 +8,10 @@ const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
 
 app.use(cors({
-  origin: CLIENT_ORIGIN,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization","Cache-Control","Expires","Pragma"],
-    credentials: true
+  origin: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization","Cache-Control","Expires","Pragma"],
+  credentials: true
 }))
 app.use(express.json());
 
@@ -33,8 +33,23 @@ app.use("/api/chat", require("./routes/chat"));
 // Start Cron Jobs
 require("./jobs/reminderJob");
 
-app.get("/", (req, res) => {
-  res.send("API Running 🚀");
-});
+const path = require("path");
+const fs = require("fs");
 
-app.listen(PORT);
+// Serve React production build static files if present
+const clientBuildPath = path.join(__dirname, "../career-ai/dist");
+if (fs.existsSync(clientBuildPath)) {
+  app.use(express.static(clientBuildPath));
+  app.get("/{*splat}", (req, res, next) => {
+    if (req.path.startsWith("/api")) return next();
+    res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("API Running 🚀");
+  });
+}
+
+app.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});

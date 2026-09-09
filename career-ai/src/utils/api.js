@@ -1,6 +1,9 @@
 import { logout } from './auth';
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = typeof window !== 'undefined' && !window.location.origin.includes('localhost')
+  ? `${window.location.origin}/api`
+  : "http://localhost:5000/api";
+
 
 export const apiFetch = async (endpoint, options = {}) => {
   const token = localStorage.getItem('token');

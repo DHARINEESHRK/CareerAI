@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { apiFetch } from '../utils/api';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,11 +18,11 @@ const Login = () => {
     setIsLoading(true);
     setError('');
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      const response = await apiFetch("/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
+
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || 'Something went wrong');
@@ -55,9 +56,8 @@ const Login = () => {
     setIsLoading(true);
     setError('');
     try {
-      const res = await fetch("http://localhost:5000/api/auth/google", {
+      const res = await apiFetch("/auth/google", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ credential: response.credential })
       });
       const data = await res.json();

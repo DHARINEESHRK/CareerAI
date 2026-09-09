@@ -35,7 +35,7 @@ const Profile = () => {
 
   const fetchProfile = async () => {
     try {
-      const response = await apiFetch("http://localhost:5000/api/user/profile");
+      const response = await apiFetch("/user/profile");
       if (!response) return; 
       
       const data = await response.json();
@@ -101,7 +101,7 @@ const Profile = () => {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const response = await apiFetch("http://localhost:5000/api/user/profile", {
+      const response = await apiFetch("/user/profile", {
         method: "POST",
         body: JSON.stringify({
           phone: editData.phone,
