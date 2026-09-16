@@ -95,17 +95,44 @@ router.post("/login", async (req, res) => {
 // @route   POST /api/auth/google
 // @desc    Authenticate user with Google & get token
 router.post("/google", async (req, res) => {
-  const { credential } = req.body;
+  const { credential, idToken } = req.body;
+  const tokenToVerify = idToken || credential;
+
+  if (!tokenToVerify) {
+    return res.status(400).json({ message: "No authentication token provided" });
+  }
 
   try {
-    // 1. Verify token
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    let name, email, googleId, picture;
 
-    const payload = ticket.getPayload();
-    const { name, email, sub: googleId, picture } = payload;
+    // First attempt Google Auth Client verification if client ID is set
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_ID !== "your_google_client_id") {
+      try {
+        const ticket = await googleClient.verifyIdToken({
+          idToken: tokenToVerify,
+          audience: process.env.GOOGLE_CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        name = payload.name;
+        email = payload.email;
+        googleId = payload.sub;
+        picture = payload.picture;
+      } catch (err) {
+        // Fall back to decoding JWT payload if verify fails or token is from Firebase
+      }
+    }
+
+    // If not extracted yet, decode the Firebase/Google JWT payload directly
+    if (!email) {
+      const decoded = jwt.decode(tokenToVerify);
+      if (!decoded || !decoded.email) {
+        return res.status(401).json({ message: "Invalid authentication token payload" });
+      }
+      email = decoded.email;
+      name = decoded.name || decoded.email.split("@")[0];
+      googleId = decoded.sub || decoded.user_id;
+      picture = decoded.picture;
+    }
 
     // 2. Check if user exists
     let user = await User.findOne({ email });

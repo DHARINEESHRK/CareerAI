@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 import { apiFetch } from '../utils/api';
+import { auth, googleProvider } from '../config/firebase';
+import { signInWithPopup } from 'firebase/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -52,13 +54,16 @@ const Login = () => {
     }, 1500);
   };
 
-  const handleCredentialResponse = async (response) => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     setError('');
     try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
       const res = await apiFetch("/auth/google", {
         method: "POST",
-        body: JSON.stringify({ credential: response.credential })
+        body: JSON.stringify({ idToken })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -74,21 +79,11 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.message);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError(err.message || "Failed to sign in with Google");
+      }
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    if (window.google) {
-      window.google.accounts.id.initialize({
-        client_id: "YOUR_GOOGLE_CLIENT_ID", // Replace with real ID
-        callback: handleCredentialResponse
-      });
-      window.google.accounts.id.prompt();
-    } else {
-      setError("Google Login not available right now. Please try again.");
     }
   };
 
